@@ -19,8 +19,9 @@ public class Main {
                 staticFileConfig.precompress = false;
                 staticFileConfig.aliasCheck = null;
             });
-        });
-        app.start(7010);
+
+        }).start(7010);
+
 
         app.before("/", ctx -> {
             if (!isUserLoggedIn(ctx)) {
@@ -28,31 +29,48 @@ public class Main {
             }
         });
 
+
+
         app.get("/", ctx -> {
             ctx.result("Pagina Inicio");
         });
 
         app.post("/login", ctx -> {
-            //String username = ctx.formParam("username");
-            // String password = ctx.formParam("password");
+            String username = ctx.formParam("username");
+            String password = ctx.formParam("password");
 
-
-            ctx.redirect("/");
+            if (isValidCredentials(username, password)) {
+                // Establecer una sesión de usuario (por ejemplo, mediante una cookie)
+                ctx.sessionAttribute("username", username);
+                ctx.redirect("/");
+            } else {
+                ctx.redirect("/login");
+            }
         });
 
         app.get("/logeado", ctx -> {
-            ctx.result("Usted ya está logeado :D");
+            String username = ctx.sessionAttribute("username");
+            if (username != null) {
+                ctx.result("Usted ya está logeado :D");
+            } else {
+                ctx.redirect("/login");
+            }
         });
 
-       app.get("/login", ctx -> {
-            ctx.render("/publico/formulario.html");
-        });
+        app.get("/login", ctx -> {
+            ctx.redirect("/publico/formulario.html");
 
+        });
 
     }
 
+    private static boolean isValidCredentials(String username, String password) {
+        return username.equals("admin") && password.equals("12345");
+    }
+
     private static boolean isUserLoggedIn(Context ctx) {
-        return false;
+        String username = ctx.sessionAttribute("username");
+        return username != null;
     }
 
 }
